@@ -177,7 +177,19 @@ intersection ( a1, a2 ) ( b1, b2 ) =
 
 step : Time -> Model -> Model
 step diff model =
-    move diff model
+    model
+        |> checkBoundaries
+        |> move diff
+
+
+checkBoundaries : Model -> Model
+checkBoundaries ({ player } as model) =
+    if player.x <= -240 && player.vx < 0 then
+        { model | player = { player | vx = 0 } }
+    else if player.x >= 240 && player.vx > 0 then
+        { model | player = { player | vx = 0 } }
+    else
+        model
 
 
 move : Time -> Model -> Model
@@ -227,17 +239,21 @@ onKeyPress keyPress ({ player, activeGun } as model) =
         Up 68 ->
             { model | player = { player | vx = 0 } }
 
-        Down 38 ->
-            { model
-                | activeGun =
-                    if activeGun == Blue then
-                        Orange
-                    else
-                        Blue
-            }
+        Down 16 ->
+            { model | activeGun = switchGuns activeGun }
 
         _ ->
             model
+
+
+switchGuns : Portal -> Portal
+switchGuns activeGun =
+    case activeGun of
+        Blue ->
+            Orange
+
+        Orange ->
+            Blue
 
 
 -- VIEW

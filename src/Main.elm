@@ -18,10 +18,10 @@ import AnimationFrame
 type alias Model =
     { size : Window.Size
     , player : Player
-    , activeGun : Portal
+    , activeGun : PortalColor
     , target : Point
-    , bluePortal : Maybe Point
-    , orangePortal : Maybe Point
+    , bluePortal : Maybe Portal
+    , orangePortal : Maybe Portal
     }
 
 
@@ -39,14 +39,27 @@ type alias Point =
     }
 
 
-type Portal
+type alias Portal =
+    { location : Point
+    , orientation : Orientation
+    }
+
+
+type Orientation
+    = Left
+    | Up
+    | Right
+    | Down
+
+
+type PortalColor
     = Blue
     | Orange
 
 
 type KeyPress
-    = Up Int
-    | Down Int
+    = Lift Int
+    | Press Int
 
 
 init : ( Model, Cmd Msg )
@@ -96,10 +109,10 @@ update msg model =
             ( setTarget position model, Cmd.none )
 
         KeyDown code ->
-            ( onKeyPress (Down code) model, Cmd.none )
+            ( onKeyPress (Press code) model, Cmd.none )
 
         KeyUp code ->
-            ( onKeyPress (Up code) model, Cmd.none )
+            ( onKeyPress (Lift code) model, Cmd.none )
 
         Click ->
             ( shootPortal model, Cmd.none )
@@ -107,12 +120,28 @@ update msg model =
 
 shootPortal : Model -> Model
 shootPortal model =
-    case model.activeGun of
-        Blue ->
-            { model | bluePortal = Just model.target }
+    let
+        portal =
+            Just { location = model.target, orientation = getOrientation model.target }
+    in
+        case model.activeGun of
+            Blue ->
+                { model | bluePortal = portal }
 
-        Orange ->
-            { model | orangePortal = Just model.target }
+            Orange ->
+                { model | orangePortal = portal }
+
+
+getOrientation : Point -> Orientation
+getOrientation { x, y } =
+    if x == 250 then
+        Left
+    else if x == -250 then
+        Right
+    else if y == 250 then
+        Down
+    else
+        Up
 
 
 setTarget : Mouse.Position -> Model -> Model
@@ -215,38 +244,38 @@ velocity =
 onKeyPress : KeyPress -> Model -> Model
 onKeyPress keyPress ({ player, activeGun } as model) =
     case keyPress of
-        Down 37 ->
+        Press 37 ->
             { model | player = { player | vx = -velocity } }
 
-        Up 37 ->
+        Lift 37 ->
             { model | player = { player | vx = 0 } }
 
-        Down 65 ->
+        Press 65 ->
             { model | player = { player | vx = -velocity } }
 
-        Up 65 ->
+        Lift 65 ->
             { model | player = { player | vx = 0 } }
 
-        Down 39 ->
+        Press 39 ->
             { model | player = { player | vx = velocity } }
 
-        Up 39 ->
+        Lift 39 ->
             { model | player = { player | vx = 0 } }
 
-        Down 68 ->
+        Press 68 ->
             { model | player = { player | vx = velocity } }
 
-        Up 68 ->
+        Lift 68 ->
             { model | player = { player | vx = 0 } }
 
-        Down 16 ->
+        Press 16 ->
             { model | activeGun = switchGuns activeGun }
 
         _ ->
             model
 
 
-switchGuns : Portal -> Portal
+switchGuns : PortalColor -> PortalColor
 switchGuns activeGun =
     case activeGun of
         Blue ->
@@ -280,11 +309,16 @@ board { player, target, bluePortal, orangePortal, activeGun } =
         ( player.x, player.y )
         ( target.x, target.y )
             |> Collage.traced (Collage.dashed (portalColor activeGun))
+    , bluePortal
+        |> Maybe.map (portal Blue)
+        |> Maybe.withDefault (Collage.toForm Element.empty)
+    , orangePortal
+        |> Maybe.map (portal Orange)
+        |> Maybe.withDefault (Collage.toForm Element.empty)
     ]
-    ++ (portals bluePortal orangePortal)
 
 
-portalColor : Portal -> Color
+portalColor : PortalColor -> Color
 portalColor portal =
     case portal of
         Blue ->
@@ -294,32 +328,27 @@ portalColor portal =
             Color.orange
 
 
-portals : Maybe Point -> Maybe Point -> List Collage.Form
-portals bluePortal orangePortal =
-    case ( bluePortal, orangePortal ) of
-        ( Nothing, Nothing ) ->
-            []
+portal : PortalColor -> Portal -> Collage.Form
+portal color { location, orientation } =
+    portalShape orientation
+        |> Collage.filled (portalColor color)
+        |> Collage.move ( location.x, location.y )
 
-        ( Nothing, Just { x, y } ) ->
-            [ Collage.oval 10 50
-                |> Collage.filled (portalColor Orange)
-                |> Collage.move ( x, y )
-            ]
 
-        ( Just { x, y }, Nothing ) ->
-            [ Collage.oval 10 50
-                |> Collage.filled (portalColor Blue)
-                |> Collage.move ( x, y )
-            ]
+portalShape : Orientation -> Collage.Shape
+portalShape orientation =
+    case orientation of
+        Left ->
+            Collage.oval 10 50
 
-        ( Just blue, Just orange ) ->
-            [ Collage.oval 10 50
-                |> Collage.filled (portalColor Blue)
-                |> Collage.move ( blue.x, blue.y )
-            , Collage.oval 10 50
-                |> Collage.filled (portalColor Orange)
-                |> Collage.move ( orange.x, orange.y )
-            ]
+        Right ->
+            Collage.oval 10 50
+
+        Up ->
+            Collage.oval 50 10
+
+        Down ->
+            Collage.oval 50 10
 
 
 -- SUBSCRIPTIONS

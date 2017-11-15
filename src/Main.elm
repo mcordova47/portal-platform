@@ -208,6 +208,7 @@ step : Time -> Model -> Model
 step diff model =
     model
         |> checkBoundaries
+        |> checkPortal
         |> move diff
 
 
@@ -219,6 +220,64 @@ checkBoundaries ({ player } as model) =
         { model | player = { player | vx = 0 } }
     else
         model
+
+
+checkPortal : Model -> Model
+checkPortal model =
+    let
+        inBluePortal =
+            model.bluePortal
+                |> Maybe.map (isInPortal model.player)
+                |> Maybe.withDefault False
+
+        inOrangePortal =
+            model.orangePortal
+                |> Maybe.map (isInPortal model.player)
+                |> Maybe.withDefault False
+
+        from =
+            if inBluePortal then
+                model.bluePortal
+            else if inOrangePortal then
+                model.orangePortal
+            else
+                Nothing
+
+        to =
+            if inOrangePortal then
+                model.bluePortal
+            else
+                model.orangePortal
+
+        player =
+            Maybe.map2 (enterPortal model.player) from to
+                |> Maybe.withDefault model.player
+    in
+        { model | player = player }
+
+
+isInPortal : Player -> Portal -> Bool
+isInPortal player portal =
+    case portal.orientation of
+        Left ->
+            player.x >= (portal.location.x - 10) &&
+            player.y > (portal.location.y - 25) &&
+            player.y < (portal.location.y + 25)
+
+        Right ->
+            player.x <= (portal.location.x + 10) &&
+            player.y > (portal.location.y - 25) &&
+            player.y < (portal.location.y + 25)
+
+        Up ->
+            player.y <= (portal.location.y + 10) &&
+            player.x > (portal.location.x - 25) &&
+            player.x < (portal.location.x + 25)
+
+        Down ->
+            player.y >= (portal.location.y - 10) &&
+            player.x > (portal.location.x - 25) &&
+            player.x < (portal.location.x + 25)
 
 
 move : Time -> Model -> Model
@@ -283,6 +342,62 @@ switchGuns activeGun =
 
         Orange ->
             Blue
+
+
+enterPortal : Player -> Portal -> Portal -> Player
+enterPortal player from to =
+    let
+        offset =
+            if isVertical from.orientation then
+                player.y - from.location.y
+            else
+                player.x - from.location.x
+
+        x =
+            case to.orientation of
+                Left ->
+                    to.location.x - 15
+
+                Right ->
+                    to.location.x + 15
+
+                Up ->
+                    to.location.x + offset
+
+                Down ->
+                    to.location.x + offset
+
+        y =
+            case to.orientation of
+                Left ->
+                    to.location.y + offset
+
+                Right ->
+                    to.location.y + offset
+
+                Up ->
+                    to.location.y + 15
+
+                Down ->
+                    to.location.y - 15
+    in
+        { player | x = x, y = y }
+
+
+isVertical : Orientation -> Bool
+isVertical orientation =
+    case orientation of
+        Left ->
+            True
+
+        Right ->
+            True
+
+        Up ->
+            False
+
+        Down ->
+            False
 
 
 -- VIEW

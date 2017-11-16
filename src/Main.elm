@@ -207,17 +207,37 @@ intersection ( a1, a2 ) ( b1, b2 ) =
 step : Time -> Model -> Model
 step diff model =
     model
-        |> checkBoundaries
+        |> gravity diff
         |> checkPortal
         |> move diff
+        |> checkBoundaries
+
+
+gravity : Time -> Model -> Model
+gravity diff ({ player } as model) =
+    let
+        seconds =
+            Time.inSeconds diff
+
+        forceGravity =
+            -850
+    in
+        if player.y <= -240 then
+            { model | player = { player | vy = 0 } }
+        else
+            { model | player = { player | vy = player.vy + seconds * forceGravity } }
 
 
 checkBoundaries : Model -> Model
 checkBoundaries ({ player } as model) =
     if player.x <= -240 && player.vx < 0 then
-        { model | player = { player | vx = 0 } }
+        { model | player = { player | vx = 0, x = -240 } }
     else if player.x >= 240 && player.vx > 0 then
-        { model | player = { player | vx = 0 } }
+        { model | player = { player | vx = 0, x = 240 } }
+    else if player.y <= -240 && player.vy < 0 then
+        { model | player = { player | vy = 0, y = -240 } }
+    else if player.y >= 240 && player.vy > 0 then
+        { model | player = { player | vy = 0, y = 240 } }
     else
         model
 

@@ -134,11 +134,11 @@ shootPortal model =
 
 getOrientation : Point -> Orientation
 getOrientation { x, y } =
-    if x == 250 then
+    if round x == 250 then
         Left
-    else if x == -250 then
+    else if round x == -250 then
         Right
-    else if y == 250 then
+    else if round y == 250 then
         Down
     else
         Up

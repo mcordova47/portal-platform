@@ -63,15 +63,15 @@ init : ( Model, Cmd Msg )
 init =
     ( { size = Window.Size 0 0
       , player =
-          { x = 0
+          { x = -230
           , y = -240
           , vx = 0
           , vy = 0
           }
       , activeGun = Blue
       , target =
-          { x = 0
-          , y = 0
+          { x = -230
+          , y = -240
           }
       , bluePortal = Nothing
       , orangePortal = Nothing

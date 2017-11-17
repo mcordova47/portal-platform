@@ -10,6 +10,8 @@ import Mouse
 import Keyboard
 import Time exposing (Time)
 import AnimationFrame
+import Level exposing (Level)
+import Point exposing (Point)
 
 
 -- MODEL
@@ -22,6 +24,7 @@ type alias Model =
     , target : Point
     , bluePortal : Maybe Portal
     , orangePortal : Maybe Portal
+    , level : Level
     }
 
 
@@ -30,12 +33,6 @@ type alias Player =
     , y : Float
     , vx : Float
     , vy : Float
-    }
-
-
-type alias Point =
-    { x : Float
-    , y : Float
     }
 
 
@@ -78,6 +75,7 @@ init =
           }
       , bluePortal = Nothing
       , orangePortal = Nothing
+      , level = Level.level 0
       }
     , Task.perform SetSize Window.size
     )
@@ -434,7 +432,7 @@ view model =
 
 
 board : Model -> List Collage.Form
-board { player, target, bluePortal, orangePortal, activeGun } =
+board { player, target, bluePortal, orangePortal, activeGun, level } =
     [ Collage.rect 500 500
         |> Collage.outlined (Collage.solid Color.black)
     , Collage.circle 10
@@ -451,6 +449,7 @@ board { player, target, bluePortal, orangePortal, activeGun } =
         |> Maybe.map (portal Orange)
         |> Maybe.withDefault (Collage.toForm Element.empty)
     ]
+    ++ (Level.view level)
 
 
 portalColor : PortalColor -> Color

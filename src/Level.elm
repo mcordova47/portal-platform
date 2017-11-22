@@ -28,7 +28,7 @@ type Orientation
 level0 : Level
 level0 =
     { walls = []
-    , cube = Just (Point 0 -240)
+    , cube = Nothing
     }
 
 
@@ -38,6 +38,10 @@ levels =
         { walls =
             [ { orientation = Vertical
               , origin = Point 0 -250
+              , length = 100
+              }
+            , { orientation = Horizontal
+              , origin = Point -250 0
               , length = 100
               }
             ]

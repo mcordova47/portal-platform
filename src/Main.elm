@@ -75,7 +75,7 @@ init =
           }
       , bluePortal = Nothing
       , orangePortal = Nothing
-      , level = Level.level 0
+      , level = Level.level 1
       }
     , Task.perform SetSize Window.size
     )
@@ -167,7 +167,7 @@ setTarget position model =
                     ( playerPos, mousePos )
                     ( { x = 250, y = -250 }, { x = 250, y = 250 } )
 
-        target =
+        wallTarget =
             if intersect.y > 250 then
                 intersection
                     ( playerPos, mousePos )
@@ -178,6 +178,12 @@ setTarget position model =
                     ( { x = -250, y = -250 }, { x = 250, y = -250 } )
             else
                 intersect
+
+        target =
+            model.level.walls
+                |> List.map (wallIntersection ( playerPos, mousePos ))
+                |> List.filterMap identity
+                |> List.foldl (closestPoint playerPos) wallTarget
     in
         { model | target = target }
 
@@ -200,6 +206,47 @@ intersection ( a1, a2 ) ( b1, b2 ) =
         { x = numeratorX / denominatorX
         , y = numeratorY / denominatorY
         }
+
+
+wallIntersection : ( Point, Point ) -> Level.Wall -> Maybe Point
+wallIntersection line wall =
+    let
+        wallEnd =
+            wall
+                |> Level.endPoint
+                |> uncurry Point
+
+        wallLine =
+            ( wall.origin, wallEnd )
+
+        intersect =
+            intersection line wallLine
+    in
+        case wall.orientation of
+            Level.Vertical ->
+                if clamp wall.origin.y wallEnd.y intersect.y == intersect.y then
+                    Just intersect
+                else
+                    Nothing
+
+            Level.Horizontal ->
+                if clamp wall.origin.x wallEnd.x intersect.x == intersect.x then
+                    Just intersect
+                else
+                    Nothing
+
+
+length : Point -> Point -> Float
+length a b =
+    sqrt <| (a.x - b.x) ^ 2 + (a.y - b.y) ^ 2
+
+
+closestPoint : Point -> Point -> Point -> Point
+closestPoint toPt pt1 pt2 =
+    if length pt1 toPt <= length pt2 toPt then
+        pt1
+    else
+        pt2
 
 
 step : Time -> Model -> Model

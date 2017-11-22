@@ -34,19 +34,18 @@ level0 =
 
 levels : List Level
 levels =
-    [
-        { walls =
+    [ { walls =
             [ { orientation = Vertical
               , origin = Point 0 -250
               , length = 100
               }
             , { orientation = Horizontal
-              , origin = Point -250 0
-              , length = 100
+              , origin = Point 100 0
+              , length = 150
               }
             ]
-        , cube = Nothing
-        }
+      , cube = Nothing
+      }
     ]
 
 
@@ -61,8 +60,9 @@ view : Level -> List Collage.Form
 view level =
     (level.cube
         |> Maybe.map cube
-        |> Maybe.withDefault (Collage.toForm Element.empty))
-    :: (List.map wall level.walls)
+        |> Maybe.withDefault (Collage.toForm Element.empty)
+    )
+        :: (List.map wall level.walls)
 
 
 wall : Wall -> Collage.Form
@@ -70,7 +70,7 @@ wall w =
     Collage.segment
         ( w.origin.x, w.origin.y )
         (endPoint w)
-            |> Collage.traced (Collage.solid Color.black)
+        |> Collage.traced (Collage.solid Color.black)
 
 
 cube : Point -> Collage.Form

@@ -63,16 +63,16 @@ init : ( Model, Cmd Msg )
 init =
     ( { size = Window.Size 0 0
       , player =
-          { x = -230
-          , y = -240
-          , vx = 0
-          , vy = 0
-          }
+            { x = -230
+            , y = -240
+            , vx = 0
+            , vy = 0
+            }
       , activeGun = Blue
       , target =
-          { x = -230
-          , y = -240
-          }
+            { x = -230
+            , y = -240
+            }
       , bluePortal = Nothing
       , orangePortal = Nothing
       , level = Level.level 1
@@ -465,6 +465,7 @@ isVertical orientation =
             False
 
 
+
 -- VIEW
 
 
@@ -477,7 +478,6 @@ view model =
         |> Element.toHtml
 
 
-
 board : Model -> List Collage.Form
 board { player, target, bluePortal, orangePortal, activeGun, level } =
     [ Collage.rect 500 500
@@ -488,7 +488,7 @@ board { player, target, bluePortal, orangePortal, activeGun, level } =
     , Collage.segment
         ( player.x, player.y )
         ( target.x, target.y )
-            |> Collage.traced (Collage.dashed (portalColor activeGun))
+        |> Collage.traced (Collage.dashed (portalColor activeGun))
     , bluePortal
         |> Maybe.map (portal Blue)
         |> Maybe.withDefault (Collage.toForm Element.empty)
@@ -496,7 +496,7 @@ board { player, target, bluePortal, orangePortal, activeGun, level } =
         |> Maybe.map (portal Orange)
         |> Maybe.withDefault (Collage.toForm Element.empty)
     ]
-    ++ (Level.view level)
+        ++ (Level.view level)
 
 
 portalColor : PortalColor -> Color
@@ -530,6 +530,7 @@ portalShape orientation =
 
         Down ->
             Collage.oval 50 10
+
 
 
 -- SUBSCRIPTIONS

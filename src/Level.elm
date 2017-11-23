@@ -9,13 +9,13 @@ import Element
 
 type alias Level =
     { walls : List Wall
-    , cube : Maybe Point
+    , cube : Maybe (Point {})
     }
 
 
 type alias Wall =
     { orientation : Orientation
-    , origin : Point
+    , origin : Point {}
     , length : Float
     }
 
@@ -36,11 +36,11 @@ levels : List Level
 levels =
     [ { walls =
             [ { orientation = Vertical
-              , origin = Point 0 -250
+              , origin = { x = 0, y = -250 }
               , length = 100
               }
             , { orientation = Horizontal
-              , origin = Point 100 0
+              , origin = { x = 100, y = 0 }
               , length = 150
               }
             ]
@@ -73,7 +73,7 @@ wall w =
         |> Collage.traced (Collage.solid Color.black)
 
 
-cube : Point -> Collage.Form
+cube : Point a -> Collage.Form
 cube c =
     Element.image 20 20 "./img/companion-cube.png"
         |> Collage.toForm

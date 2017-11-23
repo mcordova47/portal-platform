@@ -11,7 +11,7 @@ import Keyboard
 import Time exposing (Time)
 import AnimationFrame
 import Level exposing (Level)
-import Point exposing (Point)
+import Point exposing (Point, point)
 
 
 -- MODEL
@@ -21,7 +21,7 @@ type alias Model =
     { size : Window.Size
     , player : Player
     , activeGun : PortalColor
-    , target : Point
+    , target : Point {}
     , bluePortal : Maybe Portal
     , orangePortal : Maybe Portal
     , level : Level
@@ -37,7 +37,7 @@ type alias Player =
 
 
 type alias Portal =
-    { location : Point
+    { location : Point {}
     , orientation : Orientation
     }
 
@@ -130,7 +130,7 @@ shootPortal model =
                 { model | orangePortal = portal }
 
 
-getOrientation : Point -> Orientation
+getOrientation : Point a -> Orientation
 getOrientation { x, y } =
     if round x == 250 then
         Left
@@ -154,41 +154,38 @@ setTarget position model =
         mousePos =
             { x = mouseX, y = mouseY }
 
-        playerPos =
-            { x = model.player.x, y = model.player.y }
-
         intersect =
             if mouseX < model.player.x then
                 intersection
-                    ( playerPos, mousePos )
+                    ( model.player, mousePos )
                     ( { x = -250, y = -250 }, { x = -250, y = 250 } )
             else
                 intersection
-                    ( playerPos, mousePos )
+                    ( model.player, mousePos )
                     ( { x = 250, y = -250 }, { x = 250, y = 250 } )
 
         wallTarget =
             if intersect.y > 250 then
                 intersection
-                    ( playerPos, mousePos )
+                    ( model.player, mousePos )
                     ( { x = -250, y = 250 }, { x = 250, y = 250 } )
             else if intersect.y < -250 then
                 intersection
-                    ( playerPos, mousePos )
+                    ( model.player, mousePos )
                     ( { x = -250, y = -250 }, { x = 250, y = -250 } )
             else
                 intersect
 
         target =
             model.level.walls
-                |> List.map (wallIntersection ( playerPos, mousePos ))
+                |> List.map (wallIntersection ( model.player, mousePos ))
                 |> List.filterMap identity
-                |> List.foldl (closestPoint playerPos) wallTarget
+                |> List.foldl (closestPoint model.player) wallTarget
     in
         { model | target = target }
 
 
-intersection : ( Point, Point ) -> ( Point, Point ) -> Point
+intersection : ( Point a, Point b ) -> ( Point c, Point d ) -> Point {}
 intersection ( a1, a2 ) ( b1, b2 ) =
     let
         numeratorX =
@@ -208,13 +205,13 @@ intersection ( a1, a2 ) ( b1, b2 ) =
         }
 
 
-wallIntersection : ( Point, Point ) -> Level.Wall -> Maybe Point
+wallIntersection : ( Point a, Point b ) -> Level.Wall -> Maybe (Point {})
 wallIntersection line wall =
     let
         wallEnd =
             wall
                 |> Level.endPoint
-                |> uncurry Point
+                |> uncurry point
 
         wallLine =
             ( wall.origin, wallEnd )
@@ -236,12 +233,12 @@ wallIntersection line wall =
                     Nothing
 
 
-length : Point -> Point -> Float
+length : Point a -> Point b -> Float
 length a b =
     sqrt <| (a.x - b.x) ^ 2 + (a.y - b.y) ^ 2
 
 
-closestPoint : Point -> Point -> Point -> Point
+closestPoint : Point a -> Point b -> Point b -> Point b
 closestPoint toPt pt1 pt2 =
     if length pt1 toPt <= length pt2 toPt then
         pt1

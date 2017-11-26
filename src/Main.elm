@@ -12,6 +12,7 @@ import Time exposing (Time)
 import AnimationFrame
 import Level exposing (Level)
 import Point exposing (Point, point)
+import Maybe.Extra as Maybe
 
 
 -- MODEL
@@ -21,7 +22,7 @@ type alias Model =
     { size : Window.Size
     , player : Player
     , activeGun : PortalColor
-    , target : Point {}
+    , target : Maybe (Point {})
     , bluePortal : Maybe Portal
     , orangePortal : Maybe Portal
     , level : Level
@@ -68,10 +69,7 @@ init =
             , vy = 0
             }
       , activeGun = Blue
-      , target =
-            { x = -230
-            , y = -240
-            }
+      , target = Nothing
       , bluePortal = Nothing
       , orangePortal = Nothing
       , level = Level.level 1
@@ -119,7 +117,9 @@ shootPortal : Model -> Model
 shootPortal model =
     let
         portal =
-            Just { location = model.target, orientation = getOrientation model.target }
+            model.target
+                |> Maybe.map getOrientation
+                |> Maybe.map2 Portal model.target
     in
         case model.activeGun of
             Blue ->
@@ -142,44 +142,19 @@ getOrientation { x, y } =
 
 
 setTarget : Mouse.Position -> Model -> Model
-setTarget position model =
+setTarget { x, y } model =
     let
-        mouseX =
-            (toFloat (position.x * 2 - model.size.width)) / 2
-
-        mouseY =
-            (toFloat (model.size.height - position.y * 2)) / 2
-
         mousePos =
-            { x = mouseX, y = mouseY }
-
-        intersect =
-            if mouseX < model.player.x then
-                intersection
-                    ( model.player, mousePos )
-                    ( { x = -250, y = -250 }, { x = -250, y = 250 } )
-            else
-                intersection
-                    ( model.player, mousePos )
-                    ( { x = 250, y = -250 }, { x = 250, y = 250 } )
-
-        wallTarget =
-            if intersect.y > 250 then
-                intersection
-                    ( model.player, mousePos )
-                    ( { x = -250, y = 250 }, { x = 250, y = 250 } )
-            else if intersect.y < -250 then
-                intersection
-                    ( model.player, mousePos )
-                    ( { x = -250, y = -250 }, { x = 250, y = -250 } )
-            else
-                intersect
+            { x = (toFloat (x * 2 - model.size.width)) / 2
+            , y = (toFloat (model.size.height - y * 2)) / 2
+            }
 
         target =
             model.level.walls
                 |> List.map (wallIntersection ( model.player, mousePos ))
-                |> List.filterMap identity
-                |> List.foldl (closestPoint model.player) wallTarget
+                |> List.foldl
+                    (Maybe.foldMap (closestPoint model.player))
+                    Nothing
     in
         { model | target = target }
 
@@ -321,24 +296,36 @@ isInPortal : Player -> Portal -> Bool
 isInPortal player portal =
     case portal.orientation of
         Left ->
-            player.x >= (portal.location.x - 10) &&
-            player.y > (portal.location.y - 25) &&
-            player.y < (portal.location.y + 25)
+            player.x
+                >= (portal.location.x - 10)
+                && player.y
+                > (portal.location.y - 25)
+                && player.y
+                < (portal.location.y + 25)
 
         Right ->
-            player.x <= (portal.location.x + 10) &&
-            player.y > (portal.location.y - 25) &&
-            player.y < (portal.location.y + 25)
+            player.x
+                <= (portal.location.x + 10)
+                && player.y
+                > (portal.location.y - 25)
+                && player.y
+                < (portal.location.y + 25)
 
         Up ->
-            player.y <= (portal.location.y + 10) &&
-            player.x > (portal.location.x - 25) &&
-            player.x < (portal.location.x + 25)
+            player.y
+                <= (portal.location.y + 10)
+                && player.x
+                > (portal.location.x - 25)
+                && player.x
+                < (portal.location.x + 25)
 
         Down ->
-            player.y >= (portal.location.y - 10) &&
-            player.x > (portal.location.x - 25) &&
-            player.x < (portal.location.x + 25)
+            player.y
+                >= (portal.location.y - 10)
+                && player.x
+                > (portal.location.x - 25)
+                && player.x
+                < (portal.location.x + 25)
 
 
 move : Time -> Model -> Model
@@ -476,15 +463,14 @@ view model =
 
 board : Model -> List Collage.Form
 board { player, target, bluePortal, orangePortal, activeGun, level } =
-    [ Collage.rect 500 500
-        |> Collage.outlined (Collage.solid Color.black)
-    , Collage.circle 10
+    [ Collage.circle 10
         |> Collage.filled Color.gray
         |> Collage.move ( player.x, player.y )
-    , Collage.segment
-        ( player.x, player.y )
-        ( target.x, target.y )
-        |> Collage.traced (Collage.dashed (portalColor activeGun))
+    , target
+        |> Maybe.map Point.toPair
+        |> Maybe.map (Collage.segment ( player.x, player.y ))
+        |> Maybe.map (Collage.traced (Collage.dashed (portalColor activeGun)))
+        |> Maybe.withDefault (Collage.toForm Element.empty)
     , bluePortal
         |> Maybe.map (portal Blue)
         |> Maybe.withDefault (Collage.toForm Element.empty)

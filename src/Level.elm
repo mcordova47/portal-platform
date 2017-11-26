@@ -25,9 +25,30 @@ type Orientation
     | Horizontal
 
 
+baseWalls : List Wall
+baseWalls =
+    [ { orientation = Horizontal
+      , origin = { x = -250, y = 250 }
+      , length = 500
+      }
+    , { orientation = Vertical
+      , origin = { x = 250, y = -250 }
+      , length = 500
+      }
+    , { orientation = Horizontal
+      , origin = { x = -250, y = -250 }
+      , length = 500
+      }
+    , { orientation = Vertical
+      , origin = { x = -250, y = -250 }
+      , length = 500
+      }
+    ]
+
+
 level0 : Level
 level0 =
-    { walls = []
+    { walls = baseWalls
     , cube = Nothing
     }
 
@@ -35,6 +56,7 @@ level0 =
 levels : List Level
 levels =
     [ { walls =
+            baseWalls ++
             [ { orientation = Vertical
               , origin = { x = 0, y = -250 }
               , length = 100

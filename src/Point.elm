@@ -1,4 +1,4 @@
-module Point exposing (Point, point)
+module Point exposing (Point, point, toPair)
 
 
 type alias Point a =
@@ -11,3 +11,8 @@ type alias Point a =
 point : Float -> Float -> Point {}
 point x y =
     { x = x, y = y }
+
+
+toPair : Point a -> ( Float, Float )
+toPair { x, y } =
+    ( x, y )

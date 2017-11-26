@@ -11,7 +11,7 @@ import Keyboard
 import Time exposing (Time)
 import AnimationFrame
 import Level exposing (Level)
-import Point exposing (Point, point)
+import Point exposing (Point)
 import Maybe.Extra as Maybe
 
 
@@ -57,6 +57,12 @@ type PortalColor
 type KeyPress
     = Lift Int
     | Press Int
+
+
+type Sign
+    = Negative
+    | Positive
+    | None
 
 
 init : ( Model, Cmd Msg )
@@ -182,10 +188,13 @@ intersection ( a1, a2 ) ( b1, b2 ) =
 wallIntersection : ( Point a, Point b ) -> Level.Wall -> Maybe (Point {})
 wallIntersection line wall =
     let
+        ( start, end ) =
+            line
+
         wallEnd =
             wall
                 |> Level.endPoint
-                |> uncurry point
+                |> Point.fromPair
 
         wallLine =
             ( wall.origin, wallEnd )
@@ -195,16 +204,32 @@ wallIntersection line wall =
     in
         case wall.orientation of
             Level.Vertical ->
-                if clamp wall.origin.y wallEnd.y intersect.y == intersect.y then
+                if
+                    (clamp wall.origin.y wallEnd.y intersect.y == intersect.y)
+                        && (sign (intersect.x - start.x) == sign (end.x - start.x))
+                then
                     Just intersect
                 else
                     Nothing
 
             Level.Horizontal ->
-                if clamp wall.origin.x wallEnd.x intersect.x == intersect.x then
+                if
+                    (clamp wall.origin.x wallEnd.x intersect.x == intersect.x)
+                        && (sign (intersect.y - start.y) == sign (end.y - start.y))
+                then
                     Just intersect
                 else
                     Nothing
+
+
+sign : Float -> Sign
+sign x =
+    if x > 0 then
+        Positive
+    else if x < 0 then
+        Negative
+    else
+        None
 
 
 length : Point a -> Point b -> Float
@@ -296,36 +321,24 @@ isInPortal : Player -> Portal -> Bool
 isInPortal player portal =
     case portal.orientation of
         Left ->
-            player.x
-                >= (portal.location.x - 10)
-                && player.y
-                > (portal.location.y - 25)
-                && player.y
-                < (portal.location.y + 25)
+            (player.x >= (portal.location.x - 10))
+                && (player.y > (portal.location.y - 25))
+                && (player.y < (portal.location.y + 25))
 
         Right ->
-            player.x
-                <= (portal.location.x + 10)
-                && player.y
-                > (portal.location.y - 25)
-                && player.y
-                < (portal.location.y + 25)
+            (player.x <= (portal.location.x + 10))
+                && (player.y > (portal.location.y - 25))
+                && (player.y < (portal.location.y + 25))
 
         Up ->
-            player.y
-                <= (portal.location.y + 10)
-                && player.x
-                > (portal.location.x - 25)
-                && player.x
-                < (portal.location.x + 25)
+            (player.y <= (portal.location.y + 10))
+                && (player.x > (portal.location.x - 25))
+                && (player.x < (portal.location.x + 25))
 
         Down ->
-            player.y
-                >= (portal.location.y - 10)
-                && player.x
-                > (portal.location.x - 25)
-                && player.x
-                < (portal.location.x + 25)
+            (player.y >= (portal.location.y - 10))
+                && (player.x > (portal.location.x - 25))
+                && (player.x < (portal.location.x + 25))
 
 
 move : Time -> Model -> Model

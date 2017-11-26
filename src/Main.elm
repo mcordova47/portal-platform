@@ -29,11 +29,10 @@ type alias Model =
 
 
 type alias Player =
-    { x : Float
-    , y : Float
-    , vx : Float
-    , vy : Float
-    }
+    Point
+        { vx : Float
+        , vy : Float
+        }
 
 
 type alias Portal =

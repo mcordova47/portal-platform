@@ -56,16 +56,16 @@ level0 =
 levels : List Level
 levels =
     [ { walls =
-            baseWalls ++
-            [ { orientation = Vertical
-              , origin = { x = 0, y = -250 }
-              , length = 100
-              }
-            , { orientation = Horizontal
-              , origin = { x = 100, y = 0 }
-              , length = 150
-              }
-            ]
+            baseWalls
+                ++ [ { orientation = Vertical
+                     , origin = { x = 0, y = -250 }
+                     , length = 100
+                     }
+                   , { orientation = Horizontal
+                     , origin = { x = 100, y = 0 }
+                     , length = 150
+                     }
+                   ]
       , cube = Nothing
       }
     ]

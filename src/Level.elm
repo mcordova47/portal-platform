@@ -1,4 +1,4 @@
-module Level exposing (..)
+module Level exposing (Level, Wall, Orientation(..), level, endPoint, view)
 
 import Point exposing (Point)
 import List.Extra as List
@@ -48,7 +48,7 @@ baseWalls =
 
 level0 : Level
 level0 =
-    { walls = baseWalls
+    { walls = []
     , cube = Nothing
     }
 
@@ -56,16 +56,15 @@ level0 =
 levels : List Level
 levels =
     [ { walls =
-            baseWalls
-                ++ [ { orientation = Vertical
-                     , origin = { x = 0, y = -250 }
-                     , length = 100
-                     }
-                   , { orientation = Horizontal
-                     , origin = { x = 100, y = 0 }
-                     , length = 150
-                     }
-                   ]
+            [ { orientation = Vertical
+              , origin = { x = 0, y = -250 }
+              , length = 100
+              }
+            , { orientation = Horizontal
+              , origin = { x = 100, y = 0 }
+              , length = 150
+              }
+            ]
       , cube = Nothing
       }
     ]
@@ -76,6 +75,12 @@ level index =
     levels
         |> List.get (index - 1)
         |> Maybe.withDefault level0
+        |> addBorder
+
+
+addBorder : Level -> Level
+addBorder level =
+    { level | walls = level.walls ++ baseWalls }
 
 
 view : Level -> List Collage.Form

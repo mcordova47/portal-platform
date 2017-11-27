@@ -124,7 +124,7 @@ shootPortal model =
     let
         portal =
             model.target
-                |> Maybe.map getOrientation
+                |> Maybe.andThen (getOrientation model)
                 |> Maybe.map2 Portal model.target
     in
         case model.activeGun of
@@ -135,16 +135,42 @@ shootPortal model =
                 { model | orangePortal = portal }
 
 
-getOrientation : Point a -> Orientation
-getOrientation { x, y } =
-    if round x == 250 then
-        Left
-    else if round x == -250 then
-        Right
-    else if round y == 250 then
-        Down
-    else
-        Up
+getOrientation : Model -> Point a -> Maybe Orientation
+getOrientation model point =
+    let
+        wallOrientation =
+            model.level.walls
+                |> List.filter (isOnWall point)
+                |> List.head
+                |> Maybe.map (.orientation)
+    in
+        case wallOrientation of
+            Just Level.Horizontal ->
+                if model.player.x > point.x then
+                    Just Up
+                else
+                    Just Down
+
+            Just Level.Vertical ->
+                if model.player.y > point.y then
+                    Just Right
+                else
+                    Just Left
+
+            Nothing ->
+                Nothing
+
+
+isOnWall : Point a -> Level.Wall -> Bool
+isOnWall { x, y } wall =
+    case wall.orientation of
+        Level.Horizontal ->
+            (round y == round wall.origin.y)
+                && (clamp wall.origin.x (wall.origin.x + wall.length) x == x)
+
+        Level.Vertical ->
+            (round x == round wall.origin.x)
+                && (clamp wall.origin.y (wall.origin.y + wall.length) y == y)
 
 
 setTarget : Mouse.Position -> Model -> Model

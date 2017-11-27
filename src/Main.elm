@@ -146,13 +146,13 @@ getOrientation model point =
     in
         case wallOrientation of
             Just Level.Horizontal ->
-                if model.player.x > point.x then
+                if model.player.y > point.y then
                     Just Up
                 else
                     Just Down
 
             Just Level.Vertical ->
-                if model.player.y > point.y then
+                if model.player.x > point.x then
                     Just Right
                 else
                     Just Left

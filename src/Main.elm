@@ -348,21 +348,25 @@ isInPortal player portal =
     case portal.orientation of
         Left ->
             (player.x >= (portal.location.x - 10))
+                && (player.x <= (portal.location.x))
                 && (player.y > (portal.location.y - 25))
                 && (player.y < (portal.location.y + 25))
 
         Right ->
             (player.x <= (portal.location.x + 10))
+                && (player.x >= (portal.location.x))
                 && (player.y > (portal.location.y - 25))
                 && (player.y < (portal.location.y + 25))
 
         Up ->
             (player.y <= (portal.location.y + 10))
+                && (player.y >= (portal.location.y))
                 && (player.x > (portal.location.x - 25))
                 && (player.x < (portal.location.x + 25))
 
         Down ->
             (player.y >= (portal.location.y - 10))
+                && (player.y <= (portal.location.y))
                 && (player.x > (portal.location.x - 25))
                 && (player.x < (portal.location.x + 25))
 

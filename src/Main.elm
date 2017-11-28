@@ -277,7 +277,6 @@ step diff model =
         |> gravity diff
         |> checkPortal
         |> move diff
-        |> checkBoundaries
 
 
 gravity : Time -> Model -> Model
@@ -289,24 +288,9 @@ gravity diff ({ player } as model) =
         forceGravity =
             -850
     in
-        if player.y <= -240 then
-            { model | player = { player | vy = 0 } }
-        else
-            { model | player = { player | vy = player.vy + seconds * forceGravity } }
-
-
-checkBoundaries : Model -> Model
-checkBoundaries ({ player } as model) =
-    if player.x <= -240 && player.vx < 0 then
-        { model | player = { player | vx = 0, x = -240 } }
-    else if player.x >= 240 && player.vx > 0 then
-        { model | player = { player | vx = 0, x = 240 } }
-    else if player.y <= -240 && player.vy < 0 then
-        { model | player = { player | vy = 0, y = -240 } }
-    else if player.y >= 240 && player.vy > 0 then
-        { model | player = { player | vy = 0, y = 240 } }
-    else
-        model
+        { model
+            | player = { player | vy = player.vy + seconds * forceGravity }
+        }
 
 
 checkPortal : Model -> Model
@@ -372,18 +356,62 @@ isInPortal player portal =
 
 
 move : Time -> Model -> Model
-move diff ({ player } as model) =
+move diff ({ player, level } as model) =
     let
         seconds =
             Time.inSeconds diff
 
         movedPlayer =
-            { player
-                | x = player.x + player.vx * seconds
-                , y = player.y + player.vy * seconds
-            }
+            List.foldl
+                (checkWall player.x player.y)
+                { player | x = player.x + player.vx * seconds, y = player.y + player.vy * seconds }
+                level.walls
     in
         { model | player = movedPlayer }
+
+
+checkWall : Float -> Float -> Level.Wall -> Player -> Player
+checkWall oldX oldY wall player =
+    case wall.orientation of
+        Level.Vertical ->
+            if
+                (player.vx < 0)
+                    && (oldX >= wall.origin.x + 10)
+                    && (player.x < wall.origin.x + 10)
+                    && (player.y >= wall.origin.y)
+                    && (player.y <= wall.origin.y + wall.length)
+            then
+                { player | x = wall.origin.x + 10, vx = 0 }
+            else if
+                (player.vx > 0)
+                    && (oldX <= wall.origin.x - 10)
+                    && (player.x > wall.origin.x - 10)
+                    && (player.y >= wall.origin.y)
+                    && (player.y <= wall.origin.y + wall.length)
+            then
+                { player | x = wall.origin.x - 10, vx = 0 }
+            else
+                player
+
+        Level.Horizontal ->
+            if
+                (player.vy < 0)
+                    && (oldY >= wall.origin.y + 10)
+                    && (player.y < wall.origin.y + 10)
+                    && (player.x >= wall.origin.x)
+                    && (player.x <= wall.origin.x + wall.length)
+            then
+                { player | y = wall.origin.y + 10, vy = 0 }
+            else if
+                (player.vy > 0)
+                    && (oldY <= wall.origin.y - 10)
+                    && (player.y > wall.origin.y - 10)
+                    && (player.x >= wall.origin.x)
+                    && (player.x <= wall.origin.x + wall.length)
+            then
+                { player | y = wall.origin.y - 10, vy = 0 }
+            else
+                player
 
 
 velocity : Float
@@ -472,7 +500,7 @@ enterPortal player from to =
                 Down ->
                     to.location.y - 15
     in
-        { player | x = x, y = y }
+        Debug.log "enterPortal" { player | x = x, y = y }
 
 
 isVertical : Orientation -> Bool

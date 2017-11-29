@@ -65,21 +65,26 @@ type Sign
     | None
 
 
+initModel : Model
+initModel =
+    { size = Window.Size 0 0
+    , player =
+        { x = -230
+        , y = -240
+        , vx = 0
+        , vy = 0
+        }
+    , activeGun = Blue
+    , target = Nothing
+    , bluePortal = Nothing
+    , orangePortal = Nothing
+    , level = Level.level 0
+    }
+
+
 init : ( Model, Cmd Msg )
 init =
-    ( { size = Window.Size 0 0
-      , player =
-            { x = -230
-            , y = -240
-            , vx = 0
-            , vy = 0
-            }
-      , activeGun = Blue
-      , target = Nothing
-      , bluePortal = Nothing
-      , orangePortal = Nothing
-      , level = Level.level 1
-      }
+    ( initModel
     , Task.perform SetSize Window.size
     )
 
@@ -277,6 +282,7 @@ step diff model =
         |> gravity diff
         |> checkPortal
         |> move diff
+        |> checkCake
 
 
 gravity : Time -> Model -> Model
@@ -412,6 +418,22 @@ checkWall oldX oldY wall player =
                 { player | y = wall.origin.y - 10, vy = 0 }
             else
                 player
+
+
+checkCake : Model -> Model
+checkCake model =
+    if
+        (model.player.x - 10 <= model.level.cake.x + 15)
+            && (model.player.x - 10 >= model.level.cake.x - 15)
+            && (model.player.y - 10 <= model.level.cake.y + 15)
+            && (model.player.y - 10 >= model.level.cake.y - 15)
+    then
+        { initModel
+            | level = Level.level (model.level.index + 1)
+            , size = model.size
+        }
+    else
+        model
 
 
 velocity : Float

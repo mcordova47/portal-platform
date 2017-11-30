@@ -556,22 +556,30 @@ view model =
 
 board : Model -> List Collage.Form
 board { player, target, bluePortal, orangePortal, activeGun, level } =
-    [ Collage.circle 10
-        |> Collage.filled Color.gray
-        |> Collage.move ( player.x, player.y )
-    , target
-        |> Maybe.map Point.toPair
-        |> Maybe.map (Collage.segment ( player.x, player.y ))
-        |> Maybe.map (Collage.traced (Collage.dashed (portalColor activeGun)))
-        |> Maybe.withDefault (Collage.toForm Element.empty)
-    , bluePortal
-        |> Maybe.map (portal Blue)
-        |> Maybe.withDefault (Collage.toForm Element.empty)
-    , orangePortal
-        |> Maybe.map (portal Orange)
-        |> Maybe.withDefault (Collage.toForm Element.empty)
-    ]
-        ++ (Level.view level)
+    Level.view level
+        ++ [ characterSprite player
+           , target
+                |> Maybe.map Point.toPair
+                |> Maybe.map (Collage.segment ( player.x, player.y ))
+                |> Maybe.map (Collage.traced (Collage.dashed (portalColor activeGun)))
+                |> Maybe.withDefault (Collage.toForm Element.empty)
+           , bluePortal
+                |> Maybe.map (portal Blue)
+                |> Maybe.withDefault (Collage.toForm Element.empty)
+           , orangePortal
+                |> Maybe.map (portal Orange)
+                |> Maybe.withDefault (Collage.toForm Element.empty)
+           ]
+
+
+characterSprite : Player -> Collage.Form
+characterSprite player =
+    if player.vx == 0 then
+        Level.image 50 50 "img/stand-right.png" player
+    else if player.vx < 0 then
+        Level.image 50 50 "img/walk-left.gif" player
+    else
+        Level.image 50 50 "img/walk-right.gif" player
 
 
 portalColor : PortalColor -> Color

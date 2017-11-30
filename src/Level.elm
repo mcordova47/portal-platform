@@ -1,4 +1,4 @@
-module Level exposing (Level, Wall, Orientation(..), level, endPoint, view)
+module Level exposing (Level, Wall, Orientation(..), level, endPoint, view, image)
 
 import Point exposing (Point)
 import List.Extra as List
@@ -193,11 +193,18 @@ addBorder level =
 
 view : Level -> List Collage.Form
 view level =
-    [ cube level.cube
+    [ border
+    , cube level.cube
     , cake level.cake
     , endText level.end
     ]
         ++ (List.map wall level.walls)
+
+
+border : Collage.Form
+border =
+    Collage.rect 500 500
+        |> Collage.filled Color.lightGray
 
 
 wall : Wall -> Collage.Form
@@ -217,7 +224,7 @@ cube position =
 
 cake : Point a -> Collage.Form
 cake =
-    image 30 30 "./img/cake.jpg"
+    image 30 30 "./img/cake.png"
 
 
 endText : Bool -> Collage.Form

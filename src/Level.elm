@@ -5,7 +5,7 @@ import List.Extra as List
 import Collage
 import Color
 import Element
-import Text
+import Text exposing (Text)
 
 
 type alias Level =
@@ -197,6 +197,8 @@ view level =
     , cube level.cube
     , cake level.cake
     , endText level.end
+    , title (level.index == 0)
+    , instructions (level.index == 0)
     ]
         ++ (List.map wall level.walls)
 
@@ -225,6 +227,54 @@ cube position =
 cake : Point a -> Collage.Form
 cake =
     image 30 30 "./img/cake.png"
+
+
+title : Bool -> Collage.Form
+title start =
+    if start then
+        Text.fromString "RM"
+            |> Text.append orangeO
+            |> Text.append (Text.fromString "RTAL\nPLATF")
+            |> Text.append blueO
+            |> Text.append (Text.fromString "P")
+            |> Text.monospace
+            |> Text.height 24
+            |> Element.centered
+            |> Collage.toForm
+            |> Collage.move ( 0, 200 )
+    else
+        (Collage.toForm Element.empty)
+
+
+blueO : Text
+blueO =
+    Text.fromString "0"
+        |> Text.color Color.blue
+
+
+orangeO : Text
+orangeO =
+    Text.fromString "0"
+        |> Text.color Color.orange
+
+
+instructions : Bool -> Collage.Form
+instructions start =
+    if start then
+        Text.concat
+            [ Text.fromString "Left arrow or A to move left\n"
+            , Text.fromString "Right arrow or D to move right\n"
+            , Text.fromString "Shift to switch portal gun between orange and blue\n"
+            , Text.fromString "Click to shoot portal at target\n"
+            , Text.fromString "Use portals to get to the cake\n"
+            , Text.fromString "Get to the cake to start\n"
+            ]
+            |> Text.monospace
+            |> Text.height 18
+            |> Element.centered
+            |> Collage.toForm
+    else
+        (Collage.toForm Element.empty)
 
 
 endText : Bool -> Collage.Form

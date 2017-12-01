@@ -435,6 +435,7 @@ checkCake model =
         { initModel
             | level = Level.level (model.level.index + 1)
             , size = model.size
+            , audioMuted = model.audioMuted
         }
     else
         model

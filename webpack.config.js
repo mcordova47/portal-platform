@@ -82,6 +82,13 @@ const common = {
         from: 'src/img',
         to: 'img'
       }
+    ]),
+
+    new CopyWebpackPlugin([
+      {
+        from: 'src/media',
+        to: 'media'
+      }
     ])
   ]
 }

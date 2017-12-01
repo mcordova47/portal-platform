@@ -266,6 +266,7 @@ instructions start =
             , Text.fromString "Right arrow or D to move right\n"
             , Text.fromString "Shift to switch portal gun between orange and blue\n"
             , Text.fromString "Click to shoot portal at target\n"
+            , Text.fromString "S to toggle sound"
             , Text.fromString "Use portals to get to the cake\n"
             , Text.fromString "Get to the cake to start\n"
             ]

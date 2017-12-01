@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import Html exposing (Html)
+import Html.Attributes as Attributes
 import Collage
 import Element
 import Color exposing (Color)
@@ -13,6 +14,7 @@ import AnimationFrame
 import Level exposing (Level)
 import Point exposing (Point)
 import Maybe.Extra as Maybe
+import Json.Encode as Encode
 
 
 -- MODEL
@@ -26,6 +28,7 @@ type alias Model =
     , bluePortal : Maybe Portal
     , orangePortal : Maybe Portal
     , level : Level
+    , audioMuted : Bool
     }
 
 
@@ -79,6 +82,7 @@ initModel =
     , bluePortal = Nothing
     , orangePortal = Nothing
     , level = Level.level 0
+    , audioMuted = False
     }
 
 
@@ -471,6 +475,9 @@ onKeyPress keyPress ({ player, activeGun } as model) =
         Press 16 ->
             { model | activeGun = switchGuns activeGun }
 
+        Press 83 ->
+            { model | audioMuted = not model.audioMuted }
+
         _ ->
             model
 
@@ -547,11 +554,20 @@ isVertical orientation =
 
 view : Model -> Html Msg
 view model =
-    board model
-        |> Collage.collage
-            model.size.width
-            model.size.height
-        |> Element.toHtml
+    Html.div []
+        [ board model
+            |> Collage.collage
+                model.size.width
+                model.size.height
+            |> Element.toHtml
+        , Html.audio
+            [ Attributes.src "./media/still-alive.wav"
+            , Attributes.autoplay True
+            , Attributes.loop True
+            , Attributes.property "muted" (Encode.bool model.audioMuted)
+            ]
+            []
+        ]
 
 
 board : Model -> List Collage.Form

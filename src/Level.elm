@@ -232,11 +232,15 @@ cake =
 title : Bool -> Collage.Form
 title start =
     if start then
-        Text.fromString "RM"
-            |> Text.append orangeO
-            |> Text.append (Text.fromString "RTAL\nPLATF")
-            |> Text.append blueO
-            |> Text.append (Text.fromString "P")
+        Text.concat
+            [ Text.fromString "P"
+            , Text.fromString "0"
+                |> Text.color Color.blue
+            , Text.fromString "RTAL PLATF"
+            , Text.fromString "0"
+                |> Text.color Color.orange
+            , Text.fromString "RM"
+            ]
             |> Text.monospace
             |> Text.height 24
             |> Element.centered
@@ -244,18 +248,6 @@ title start =
             |> Collage.move ( 0, 200 )
     else
         (Collage.toForm Element.empty)
-
-
-blueO : Text
-blueO =
-    Text.fromString "0"
-        |> Text.color Color.blue
-
-
-orangeO : Text
-orangeO =
-    Text.fromString "0"
-        |> Text.color Color.orange
 
 
 instructions : Bool -> Collage.Form

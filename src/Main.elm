@@ -15,6 +15,7 @@ import Level exposing (Level)
 import Point exposing (Point)
 import Maybe.Extra as Maybe
 import Json.Encode as Encode
+import Math
 
 
 -- MODEL
@@ -60,12 +61,6 @@ type PortalColor
 type KeyPress
     = Lift Int
     | Press Int
-
-
-type Sign
-    = Negative
-    | Positive
-    | None
 
 
 initModel : Model
@@ -194,30 +189,10 @@ setTarget { x, y } model =
             model.level.walls
                 |> List.map (wallIntersection ( model.player, mousePos ))
                 |> List.foldl
-                    (Maybe.foldMap (closestPoint model.player))
+                    (Maybe.foldMap (Math.closestPoint model.player))
                     Nothing
     in
         { model | target = target }
-
-
-intersection : ( Point a, Point b ) -> ( Point c, Point d ) -> Point {}
-intersection ( a1, a2 ) ( b1, b2 ) =
-    let
-        numeratorX =
-            (a1.x * a2.y - a1.y * a2.x) * (b1.x - b2.x) - (a1.x - a2.x) * (b1.x * b2.y - b1.y * b2.x)
-
-        denominatorX =
-            (a1.x - a2.x) * (b1.y - b2.y) - (a1.y - a2.y) * (b1.x - b2.x)
-
-        numeratorY =
-            (a1.x * a2.y - a1.y * a2.x) * (b1.y - b2.y) - (a1.y - a2.y) * (b1.x * b2.y - b1.y * b2.x)
-
-        denominatorY =
-            (a1.x - a2.x) * (b1.y - b2.y) - (a1.y - a2.y) * (b1.x - b2.x)
-    in
-        { x = numeratorX / denominatorX
-        , y = numeratorY / denominatorY
-        }
 
 
 wallIntersection : ( Point a, Point b ) -> Level.Wall -> Maybe (Point {})
@@ -235,13 +210,13 @@ wallIntersection line wall =
             ( wall.origin, wallEnd )
 
         intersect =
-            intersection line wallLine
+            Math.intersection line wallLine
     in
         case wall.orientation of
             Level.Vertical ->
                 if
                     (clamp wall.origin.y wallEnd.y intersect.y == intersect.y)
-                        && (sign (intersect.x - start.x) == sign (end.x - start.x))
+                        && (Math.sign (intersect.x - start.x) == Math.sign (end.x - start.x))
                 then
                     Just intersect
                 else
@@ -250,34 +225,11 @@ wallIntersection line wall =
             Level.Horizontal ->
                 if
                     (clamp wall.origin.x wallEnd.x intersect.x == intersect.x)
-                        && (sign (intersect.y - start.y) == sign (end.y - start.y))
+                        && (Math.sign (intersect.y - start.y) == Math.sign (end.y - start.y))
                 then
                     Just intersect
                 else
                     Nothing
-
-
-sign : Float -> Sign
-sign x =
-    if x > 0 then
-        Positive
-    else if x < 0 then
-        Negative
-    else
-        None
-
-
-length : Point a -> Point b -> Float
-length a b =
-    sqrt <| (a.x - b.x) ^ 2 + (a.y - b.y) ^ 2
-
-
-closestPoint : Point a -> Point b -> Point b -> Point b
-closestPoint toPt pt1 pt2 =
-    if length pt1 toPt <= length pt2 toPt then
-        pt1
-    else
-        pt2
 
 
 step : Time -> Model -> Model

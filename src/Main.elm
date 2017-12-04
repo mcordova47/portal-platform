@@ -37,6 +37,7 @@ type alias Player =
     Point
         { vx : Float
         , vy : Float
+        , dir : Direction
         }
 
 
@@ -51,6 +52,11 @@ type Orientation
     | Up
     | Right
     | Down
+
+
+type Direction
+    = LeftDir
+    | RightDir
 
 
 type PortalColor
@@ -71,6 +77,7 @@ initModel =
         , y = -240
         , vx = 0
         , vy = 0
+        , dir = RightDir
         }
     , activeGun = Blue
     , target = Nothing
@@ -402,25 +409,25 @@ onKeyPress : KeyPress -> Model -> Model
 onKeyPress keyPress ({ player, activeGun } as model) =
     case keyPress of
         Press 37 ->
-            { model | player = { player | vx = -velocity } }
+            { model | player = { player | vx = -velocity, dir = LeftDir } }
 
         Lift 37 ->
             { model | player = { player | vx = 0 } }
 
         Press 65 ->
-            { model | player = { player | vx = -velocity } }
+            { model | player = { player | vx = -velocity, dir = LeftDir } }
 
         Lift 65 ->
             { model | player = { player | vx = 0 } }
 
         Press 39 ->
-            { model | player = { player | vx = velocity } }
+            { model | player = { player | vx = velocity, dir = RightDir } }
 
         Lift 39 ->
             { model | player = { player | vx = 0 } }
 
         Press 68 ->
-            { model | player = { player | vx = velocity } }
+            { model | player = { player | vx = velocity, dir = RightDir } }
 
         Lift 68 ->
             { model | player = { player | vx = 0 } }
@@ -544,7 +551,12 @@ board { player, target, bluePortal, orangePortal, activeGun, level } =
 characterSprite : Player -> Collage.Form
 characterSprite player =
     if player.vx == 0 then
-        Level.image 50 50 "img/stand-right.png" player
+        case player.dir of
+            LeftDir ->
+                Level.image 50 50 "img/stand-left.png" player
+
+            RightDir ->
+                Level.image 50 50 "img/stand-right.png" player
     else if player.vx < 0 then
         Level.image 50 50 "img/walk-left.gif" player
     else
